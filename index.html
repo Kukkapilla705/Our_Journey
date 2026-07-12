@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>For Kuchiii</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07070f;
+    --nebula:#161230;
+    --nebula2:#241c42;
+    --gold:#d9b06a;
+    --gold-soft:#f0d9a8;
+    --rose:#d98a95;
+    --cream:#f4ecdd;
+    --ember:#ff9d5c;
+    --line: rgba(244,236,221,0.18);
+    --serif: 'Cormorant Garamond', 'Georgia', serif;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+    --sans: 'Jost', 'Helvetica Neue', sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    background:var(--void); color:var(--cream);
+    font-family:var(--sans);
+    overflow:hidden;
+    -webkit-user-select:none; user-select:none;
+  }
+  #starfield{position:fixed; inset:0; z-index:0; display:block;}
+
+  #app{position:fixed; inset:0; z-index:2; overflow:hidden;}
+
+  .phase{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding: 6vh 6vw;
+    opacity:0; pointer-events:none;
+  }
+  .phase.active{opacity:1; pointer-events:auto;}
+
+  .eyebrow{
+    font-family:var(--mono); letter-spacing:0.3em; text-transform:uppercase;
+    font-size:11px; color:var(--gold); opacity:0.75; margin-bottom:18px;
+  }
+
+  .btn{
+    font-family:var(--sans); font-size:14px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--void); background:linear-gradient(135deg,var(--gold-soft),var(--gold));
+    border:none; padding:14px 34px; border-radius:999px; cursor:pointer;
+    box-shadow:0 0 30px rgba(217,176,106,0.45), 0 6px 18px rgba(0,0,0,0.35);
+    transition:transform .35s ease, box-shadow .35s ease;
+  }
+  .btn:hover{transform:translateY(-2px) scale(1.03); box-shadow:0 0 44px rgba(217,176,106,0.65);}
+  .btn:active{transform:translateY(0) scale(0.98);}
+  .btn:focus-visible{outline:2px solid var(--rose); outline-offset:4px;}
+  .btn.ghost{
+    background:transparent; color:var(--cream); border:1px solid var(--line);
+    box-shadow:none;
+  }
+
+  /* ---------- PHASE 1 : AWAKENING ---------- */
+  #phase-1 .terminal{
+    font-family:var(--mono); font-size:clamp(12px,3vw,15px); color:var(--gold-soft);
+    line-height:1.9; min-height:170px; white-space:pre-wrap; text-align:left;
+    max-width:420px;
+  }
+  #phase-1 .terminal .dim{opacity:0.5;}
+  .scanner{
+    width:130px; height:130px; border-radius:50%;
+    border:1px solid rgba(217,176,106,0.35);
+    display:flex; align-items:center; justify-content:center;
+    margin:28px auto; position:relative;
+  }
+  .scanner::before, .scanner::after{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    border:1px solid transparent; border-top-color:var(--gold);
+    animation:spin 2.6s linear infinite;
+  }
+  .scanner::after{ inset:14px; border-top-color:var(--rose); animation-duration:1.7s; animation-direction:reverse;}
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+  .scanner .core{width:10px; height:10px; border-radius:50%; background:var(--gold); box-shadow:0 0 20px 6px rgba(217,176,106,0.6);}
+
+  .poetic-line{
+    font-family:var(--serif); font-style:italic; font-size:clamp(20px,4.4vw,32px);
+    color:var(--cream); line-height:1.5; max-width:640px; margin:0 auto;
+  }
+  .poetic-line .fade-word{opacity:0;}
+
+  /* ---------- PHASE 2 : MEMORY UNIVERSE ---------- */
+  .memory-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:26px;
+    max-width:900px; width:100%;
+  }
+  @media (max-width:720px){ .memory-grid{grid-template-columns:repeat(2,1fr); gap:20px;} }
+
+  .memory-orb{
+    aspect-ratio:1/1; border-radius:22px; cursor:pointer; position:relative;
+    background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+    border:1px solid var(--line); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .4s ease, box-shadow .4s ease, border-color .4s ease;
+  }
+  .memory-orb:hover{ transform:translateY(-6px); border-color:rgba(217,176,106,0.5); box-shadow:0 14px 34px rgba(0,0,0,0.4);}
+  .memory-orb .glyph{ font-size:34px; filter:drop-shadow(0 0 10px rgba(217,176,106,0.5)); }
+  .memory-orb .label{
+    position:absolute; bottom:-26px; left:0; right:0; font-family:var(--mono);
+    font-size:10px; letter-spacing:0.12em; color:var(--gold); opacity:0.7; text-transform:uppercase;
+  }
+  .memory-orb.seen{ border-color:rgba(217,176,106,0.7); }
+  .memory-orb.seen::after{
+    content:'✓'; position:absolute; top:8px; right:10px; font-size:11px; color:var(--rose);
+  }
+
+  .memory-modal{
+    position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
+    background:rgba(5,4,12,0.86); backdrop-filter:blur(10px);
+    opacity:0; pointer-events:none; padding:5vh 6vw;
+  }
+  .memory-modal.open{opacity:1; pointer-events:auto;}
+  .memory-modal .card{
+    max-width:420px; width:100%; text-align:center;
+  }
+  .memory-modal img{
+    max-width:100%; max-height:52vh; width:auto; height:auto; object-fit:contain; border-radius:14px;
+    border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,0.55);
+    margin-bottom:22px; background:rgba(0,0,0,0.25);
+  }
+  .memory-modal p{
+    font-family:var(--serif); font-style:italic; font-size:clamp(18px,3.6vw,24px);
+    line-height:1.5; color:var(--cream); margin:0 0 26px;
+  }
+
+  /* ---------- PHASE 3 : HEART PUZZLE ---------- */
+  #phase-3 .puzzle-wrap{ position:relative; width:min(78vw,340px); height:min(78vw,340px); }
+  .heart-slot{ position:absolute; width:50%; height:50%; }
+  .slot-tl{ top:0; left:0; } .slot-tr{ top:0; left:50%; }
+  .slot-bl{ top:50%; left:0; } .slot-br{ top:50%; left:50%; }
+  .heart-piece{
+    position:absolute; width:50%; height:50%; cursor:grab;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, rgba(217,176,106,0.22), rgba(217,138,149,0.14));
+    border:1px solid rgba(217,176,106,0.4); backdrop-filter:blur(4px);
+    font-family:var(--serif); font-style:italic; font-size:clamp(12px,2.6vw,15px); color:var(--gold-soft);
+    touch-action:none; transition:box-shadow .3s ease;
+  }
+  .heart-piece.locked{ cursor:default; box-shadow:0 0 22px rgba(217,176,106,0.5); background:linear-gradient(160deg, rgba(217,176,106,0.32), rgba(217,138,149,0.22)); }
+  .piece-tl{ border-radius:100% 0 0 0; top:0; left:0; }
+  .piece-tr{ border-radius:0 100% 0 0; top:0; left:50%; }
+  .piece-bl{ border-radius:0 0 0 100%; top:50%; left:0; }
+  .piece-br{ border-radius:0 0 100% 0; top:50%; left:50%; }
+  .scatter-tl{ top:-24vh; left:-20vw; }
+  .scatter-tr{ top:-26vh; left:16vw; }
+  .scatter-bl{ top:22vh; left:-24vw; }
+  .scatter-br{ top:24vh; left:18vw; }
+  #phase-3 .hint{ margin-top:34px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--gold); opacity:.6; text-transform:uppercase; }
+#completed-heart{
+
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    transform:translate(-50%,-50%) scale(0);
+
+    font-size:120px;
+
+    opacity:0;
+
+    pointer-events:none;
+
+    z-index:20;
+
+    filter:
+    drop-shadow(0 0 20px red)
+    drop-shadow(0 0 50px crimson);
+
+}
+
+
+#completed-heart.show{
+
+    opacity:1;
+
+    animation:
+    heartAppear 1.2s ease forwards,
+    redGlow 1.5s infinite 1.2s;
+
+}
+
+
+
+@keyframes heartAppear{
+
+    0%{
+        transform:translate(-50%,-50%) scale(0);
+    }
+
+    60%{
+        transform:translate(-50%,-50%) scale(1.3);
+    }
+
+    100%{
+        transform:translate(-50%,-50%) scale(1);
+    }
+
+}
+
+
+
+@keyframes redGlow{
+
+    0%,100%{
+
+        filter:
+        drop-shadow(0 0 15px red)
+        drop-shadow(0 0 35px crimson);
+
+    }
+
+    50%{
+
+        filter:
+        drop-shadow(0 0 45px red)
+        drop-shadow(0 0 90px crimson);
+
+    }
+
+}
+  /* ---------- PHASE 4 : CINEMA ---------- */
+  #phase-4{padding:0;}
+  .cinema-bar{ position:absolute; left:0; right:0; height:12vh; background:var(--void); z-index:2; }
+  .cinema-bar.top{top:0;} .cinema-bar.bottom{bottom:0;}
+  #phase-4 video{ width:100%; height:100%; object-fit:contain; background:#000; }
+  .play-fallback{
+    position:absolute; z-index:5; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:70px; height:70px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(0,0,0,0.5); color:var(--cream); font-size:24px; cursor:pointer;
+    display:none; align-items:center; justify-content:center;
+  }
+  .cinema-caption{
+    position:absolute; bottom:14vh; left:0; right:0; text-align:center;
+    font-family:var(--serif); font-style:italic; font-size:clamp(16px,3.4vw,22px); color:var(--cream);
+    z-index:3; opacity:0; padding:0 8vw;
+  }
+  .sound-btn{
+    position:absolute; top:calc(12vh + 16px); right:20px; z-index:4;
+    width:42px; height:42px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(0,0,0,0.4); color:var(--cream); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ---------- PHASE 5 : TEMPLE ---------- */
+  #phase-5 .flame{ font-size:30px; filter:drop-shadow(0 0 14px rgba(255,157,92,0.8)); margin-bottom:18px; animation:flicker 2.2s ease-in-out infinite; }
+  @keyframes flicker{ 0%,100%{opacity:1; transform:scale(1);} 45%{opacity:.75; transform:scale(0.94) rotate(-2deg);} 55%{opacity:.9; transform:scale(1.05) rotate(2deg);} }
+  #phase-5 
+  .temple-photo{
+    width:min(58vw,300px); border-radius:16px; border:1px solid var(--line);
+    box-shadow:0 30px 70px rgba(0,0,0,0.6); opacity:0; margin-bottom:26px;
+  }
+  .temple-scene{
+    width:100%;
+    height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    gap:70px;
+
+    padding:0 80px;
+}
+
+.temple-left{
+    flex:1;
+    display:flex;
+    justify-content:center;
+}
+
+#temple-img{
+
+    width:420px;
+    border-radius:18px;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+
+    transform:scale(.9);
+
+    opacity:0;
+}
+
+.temple-right{
+
+    flex:1;
+
+    color:white;
+
+    font-size:32px;
+
+    line-height:1.8;
+
+    
+
+}
+
+.temple-line{
+
+    margin:25px 0;
+
+    opacity:0;
+
+    transform:translateX(40px);
+
+}
+  .petal{
+    position:absolute; top:-5%; font-size:16px; color:var(--rose); opacity:0.85; z-index:1;
+    animation:fall linear forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(115vh) rotate(360deg); opacity:0; } }
+
+  /* ---------- PHASE 6 : BEGINNING ---------- */
+  .polaroid{
+    background:#fff; padding:14px 14px 46px; border-radius:4px; width:min(70vw,280px);
+    box-shadow:0 30px 70px rgba(0,0,0,0.6); opacity:0; transform:scale(0.8) rotate(-3deg);
+    margin-bottom:28px;
+  }
+  .polaroid img{ width:100%; display:block; border-radius:2px; }
+  #beginning-text{
+    color:#fff;
+    text-align:center;
+    line-height:1.7;
+    font-size:2rem;
+    max-width:800px;
+    margin:30px auto 0;
+}
+
+.highlight-date{
+    display:block;
+    font-size:2.4rem;
+    font-weight:700;
+    color:#FFD86B;
+    text-shadow:
+        0 0 8px rgba(255,216,107,.7),
+        0 0 20px rgba(255,216,107,.5);
+    animation: dateGlow 2s ease-in-out infinite alternate;
+}
+
+.sub-line{
+    display:block;
+    margin-top:10px;
+    font-size:1.45rem;
+    color:#ffffff;
+}
+
+.pickup-line{
+    display:block;
+    font-size:2rem;
+    line-height:1.8;
+    color:#fff;
+    font-style:italic;
+}
+
+@keyframes dateGlow{
+    from{
+        text-shadow:
+            0 0 5px rgba(255,216,107,.5);
+    }
+    to{
+        text-shadow:
+            0 0 12px rgba(255,216,107,.9),
+            0 0 28px rgba(255,216,107,.7);
+    }
+}
+
+  /* ---------- PHASE 7 : LETTER ---------- */
+  .envelope{
+    width:min(66vw,220px); height:min(46vw,150px); position:relative; cursor:pointer;
+    margin-bottom:30px;
+  }
+  .envelope .body{
+    position:absolute; inset:0; background:linear-gradient(160deg,#efe3cc,#d9c9a3);
+    border-radius:6px; box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  }
+  .envelope .flap{
+    position:absolute; top:0; left:0; right:0; height:60%;
+    background:linear-gradient(160deg,#e6d7ba,#cbb98e);
+    clip-path:polygon(0 0, 100% 0, 50% 85%);
+    transform-origin:top center; transition:transform .8s ease;
+  }
+  .envelope.open .flap{ transform:rotateX(180deg); }
+  .envelope .seal{
+    position:absolute; top:44%; left:50%; transform:translate(-50%,-50%);
+    width:34px; height:34px; border-radius:50%; background:radial-gradient(circle at 35% 30%, var(--rose), #9c4a55);
+    box-shadow:0 4px 10px rgba(0,0,0,0.4); z-index:2;
+    display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff0e8;
+  }
+#letter-text{
+
+    display:none;
+
+    width:min(85%,650px);
+    height:70vh;              /* fixed paper height */
+
+    padding:55px 45px;
+
+    background:
+    linear-gradient(
+        135deg,
+        rgba(255,255,255,.15),
+        transparent
+    ),
+    #d8b27c;
+
+    color:#17110b;
+
+    font-family:'Caveat', cursive;
+    font-size:28px;
+    line-height:1.7;
+
+    border-radius:4px;
+
+    position:relative;
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,.45),
+    inset 0 0 40px rgba(90,50,20,.25);
+
+    transform:rotate(-1deg);
+
+
+    /* IMPORTANT */
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    scrollbar-width:thin;
+}
+#letter-text::-webkit-scrollbar{
+    width:6px;
+}
+
+#letter-text::-webkit-scrollbar-thumb{
+    background:rgba(60,30,10,.4);
+    border-radius:10px;
+}
+.letter-wrapper{
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+
+.final-heart{
+
+    margin-top:35px;
+
+    font-size:90px;
+
+    color:#ff1744;
+
+    animation:heartBeat 1.5s infinite;
+
+    filter:drop-shadow(0 0 20px rgba(255,0,80,.5));
+
+}
+
+
+@keyframes heartBeat{
+
+    0%,100%{
+        transform:scale(1);
+    }
+
+    50%{
+        transform:scale(1.15);
+    }
+
+}
+/* Rough paper texture */
+#letter-text::before{
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    background:
+    radial-gradient(
+        circle at 20% 20%,
+        rgba(80,40,10,.12),
+        transparent 30%
+    ),
+    radial-gradient(
+        circle at 80% 70%,
+        rgba(80,40,10,.15),
+        transparent 35%
+    );
+
+    opacity:.7;
+
+    pointer-events:none;
+}
+
+
+/* Paper edges */
+#letter-text::after{
+
+    content:"";
+
+    position:absolute;
+    inset:8px;
+
+    border:1px dashed rgba(80,40,10,.25);
+
+    pointer-events:none;
+}
+  .letter-text::-webkit-scrollbar{width:4px;}
+  .letter-text::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+
+  .final-heart{
+    font-size:52px; cursor:pointer; filter:drop-shadow(0 0 18px rgba(217,138,149,0.7));
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.08);} }
+  .end-line{
+    position:absolute; bottom:26px; left:0; right:0; text-align:center;
+    font-family:var(--mono); font-size:10px; letter-spacing:.3em; color:var(--gold); opacity:.55;
+    text-transform:uppercase;
+  }
+
+  .fade-black{
+    position:fixed; inset:0; background:var(--void); z-index:50;
+    opacity:0; pointer-events:none;
+  }
+
+  .progress-dots{
+    position:fixed; bottom:18px; left:0; right:0; z-index:30;
+    display:flex; justify-content:center; gap:8px; pointer-events:none;
+  }
+  .progress-dots span{ width:5px; height:5px; border-radius:50%; background:rgba(244,236,221,0.25); transition:background .4s ease, transform .4s ease; }
+  .progress-dots span.on{ background:var(--gold); transform:scale(1.5); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+  .nav-buttons{
+    position:fixed;
+    top:20px;
+    left:20px;
+    z-index:9999;
+}
+
+#backBtn{
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div id="app">
+<div class="nav-buttons">
+    <button id="backBtn" class="btn ghost">⬅ Back</button>
+</div>
+  <!-- PHASE 1 -->
+  <section class="phase active" id="phase-1">
+    <div class="eyebrow">Memory Engine</div>
+    <div class="terminal" id="terminal-text"></div>
+    <div class="scanner" id="scanner" style="display:none;"><div class="core"></div></div>
+    <div id="p1-result" style="display:none;">
+      <p class="poetic-line" style="font-size:16px; opacity:.85; margin-bottom:26px;">Memory Archive Found<br><span style="font-size:13px; opacity:.7;">Access Level : Personal &nbsp;·&nbsp; Status : Ready</span></p>
+      <button class="btn" id="begin-btn">✨ Begin Journey</button>
+    </div>
+  </section>
+
+  <!-- PHASE 2 -->
+  <section class="phase" id="phase-2">
+    <div class="eyebrow">Memory Universe</div>
+    <p class="poetic-line" style="margin-bottom:40px;">Touch a memory to relive it.</p>
+    <div class="memory-grid">
+      <div class="memory-orb" data-memory="0"><span class="glyph">🖤</span><span class="label">First words</span></div>
+      <div class="memory-orb" data-memory="1"><span class="glyph">🏮</span><span class="label">Funny memory</span></div>
+      <div class="memory-orb" data-memory="2"><span class="glyph">💎</span><span class="label">Beautiful</span></div>
+      <div class="memory-orb" data-memory="3"><span class="glyph">🌙</span><span class="label">First ride</span></div>
+    </div>
+    <button class="btn ghost" id="p2-continue" style="margin-top:56px; display:none;">Continue the journey →</button>
+  </section>
+
+  <div class="memory-modal" id="memory-modal">
+    <div class="card">
+      <img id="modal-img" src="" alt="" style="display:none;">
+      <p id="modal-text"></p>
+      <button class="btn ghost" id="modal-close">close</button>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+ <section class="phase" id="phase-3">
+
+    <div class="eyebrow">A Heart, in Pieces</div>
+
+    <p class="poetic-line" style="margin-bottom:36px; font-size:18px;">
+        Drag every piece home.
+    </p>
+
+
+    <div class="puzzle-wrap" id="puzzle-wrap">
+
+        <div class="heart-slot slot-tl"></div>
+        <div class="heart-slot slot-tr"></div>
+        <div class="heart-slot slot-bl"></div>
+        <div class="heart-slot slot-br"></div>
+
+
+        <div class="heart-piece piece-tl scatter-tl" data-slot="tl" data-word="Smile">
+            Smile
+        </div>
+
+        <div class="heart-piece piece-tr scatter-tr" data-slot="tr" data-word="Kindness">
+            Kindness
+        </div>
+
+        <div class="heart-piece piece-bl scatter-bl" data-slot="bl" data-word="Strength">
+            Strength
+        </div>
+
+        <div class="heart-piece piece-br scatter-br" data-slot="br" data-word="Memories">
+            Memories
+        </div>
+
+
+        <!-- ADD THIS -->
+        <div id="completed-heart">
+            ❤️
+        </div>
+
+
+    </div>
+
+
+    <div class="hint">
+        drag each piece into place
+    </div>
+
+    <div class="hint" id="puzzle-skip">
+        trouble dragging? tap here to continue
+    </div>
+
+</section>
+
+  <!-- PHASE 4 -->
+  <section class="phase" id="phase-4">
+    <div class="cinema-bar top"></div>
+    <video id="cinema-video" src="assets/memory.mp4" playsinline muted></video>
+    <button class="sound-btn" id="sound-toggle">🔇</button>
+    <button class="play-fallback" id="play-fallback">▶</button>
+    <p class="cinema-caption" id="cinema-caption">Some memories deserve more than photographs…</p>
+    <div class="cinema-bar bottom"></div>
+  </section>
+
+  <!-- PHASE 5 -->
+  <section class="phase" id="phase-5">
+   <div class="temple-scene">
+
+    <div class="temple-left">
+        <img id="temple-img" src="assets\temple.png">
+    </div>
+
+    <div class="temple-right">
+        <div id="temple-text"></div>
+    </div>
+
+</div>
+</section>
+
+  <!-- PHASE 6 -->
+  <section class="phase" id="phase-6">
+    <div class="polaroid" id="polaroid">
+      <img src="assets/first_outing.png" alt="First outing together">
+    </div>
+    <p class="poetic-line" id="beginning-text" style="font-size:clamp(17px,3.6vw,22px);"></p>
+  </section>
+
+  <!-- PHASE 7 -->
+<section class="phase" id="phase-7">
+
+    <div id="envelope-stage">
+        <div class="envelope" id="envelope">
+            <div class="body"></div>
+            <div class="flap"></div>
+            <div class="seal">❤</div>
+        </div>
+
+        <p class="poetic-line" style="font-size:15px; opacity:.7;">
+            tap the seal to open
+        </p>
+    </div>
+
+
+    <div class="letter-wrapper">
+
+        <div class="letter-text" id="letter-text" style="display:none;"></div>
+
+        <div class="final-heart" id="final-heart" style="display:none;">
+            ❤ 
+        </div>
+
+        <p class="poetic-line" id="final-words" 
+           style="margin-top:26px; font-size:16px; opacity:0;">
+        </p>
+
+    </div>
+
+</section>
+</div>
+
+<div class="progress-dots" id="progress-dots"></div>
+<div class="fade-black" id="fade-black"></div>
+<audio id="phase7Music" preload="auto">
+<source src="assets\audio\Ee_Raathale.mp3" type="audio/mpeg">
+</audio>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script>
+/* ============ STARFIELD (three.js) ============ */
+let scene, camera, renderer, stars;
+function initStarfield(){
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.z = 5;
+  renderer = new THREE.WebGLRenderer({canvas:document.getElementById('starfield'), alpha:true, antialias:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+  const geo = new THREE.BufferGeometry();
+  const count = 1400;
+  const positions = new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    positions[i*3] = (Math.random()-0.5)*60;
+    positions[i*3+1] = (Math.random()-0.5)*60;
+    positions[i*3+2] = (Math.random()-0.5)*60;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+  const mat = new THREE.PointsMaterial({color:0xf0d9a8, size:0.045, transparent:true, opacity:0.75});
+  stars = new THREE.Points(geo, mat);
+  scene.add(stars);
+
+  window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  animateStars();
+}
+let mouseX=0, mouseY=0;
+window.addEventListener('pointermove', e=>{
+  mouseX = (e.clientX/window.innerWidth - 0.5);
+  mouseY = (e.clientY/window.innerHeight - 0.5);
+});
+function animateStars(){
+  requestAnimationFrame(animateStars);
+  if(stars){
+    stars.rotation.y += 0.00035;
+    stars.rotation.x += 0.00012;
+    camera.position.x += (mouseX*0.6 - camera.position.x)*0.02;
+    camera.position.y += (-mouseY*0.6 - camera.position.y)*0.02;
+    camera.lookAt(scene.position);
+  }
+  renderer.render(scene, camera);
+}
+initStarfield();
+
+/* ============ PHASE NAVIGATION ============ */
+const phases = ['phase-1','phase-2','phase-3','phase-4','phase-5','phase-6','phase-7'];
+let currentPhase = 0;
+const backBtn = document.getElementById("backBtn");
+
+backBtn.addEventListener("click", previousPhase);
+
+function previousPhase(){
+
+    if(currentPhase > 0){
+
+        goToPhase(currentPhase - 1);
+
+    }
+
+}
+const dotsWrap = document.getElementById('progress-dots');
+phases.forEach((_,i)=>{
+  const d = document.createElement('span');
+  if(i===0) d.classList.add('on');
+  dotsWrap.appendChild(d);
+});
+function updateDots(){
+  [...dotsWrap.children].forEach((d,i)=> d.classList.toggle('on', i===currentPhase));
+}
+
+function goToPhase(index, opts={}){
+  const fade = document.getElementById('fade-black');
+  const outEl = document.getElementById(phases[currentPhase]);
+  const inEl = document.getElementById(phases[index]);
+
+  gsap.to(fade, {opacity:1, duration:0.6, pointerEvents:'auto', onComplete:()=>{
+    outEl.classList.remove('active');
+    currentPhase = index;
+
+backBtn.style.display =
+currentPhase === 0 ? "none" : "inline-block";
+
+inEl.classList.add('active');
+    updateDots();
+    gsap.to(fade, {opacity:0, duration:0.9, pointerEvents:'none', onComplete:()=>{
+      if(opts.onEnter){
+
+    opts.onEnter();
+
+}else{
+
+    switch(index){
+
+        case 3:
+            startCinema();
+            break;
+
+        case 4:
+            startTemple();
+            break;
+
+        case 5:
+            startBeginning();
+            break;
+
+    }
+
+}
+    }});
+  }});
+}
+
+/* ============ PHASE 1 : AWAKENING ============ */
+const terminalEl = document.getElementById('terminal-text');
+const bootLines = [
+  'SYSTEM INITIALIZING...',
+  '',
+  'Loading Memory Engine...',
+  'Scanning Timeline...',
+  'Collecting Beautiful Moments...',
+  'Generating Experience...',
+  '',
+  '100%'
+];
+function typeBoot(lineIndex=0, cb){
+  if(lineIndex >= bootLines.length){ cb(); return; }
+  const line = bootLines[lineIndex];
+  let charIndex = 0;
+  const p = document.createElement('div');
+  terminalEl.appendChild(p);
+  function typeChar(){
+    if(charIndex <= line.length){
+      p.textContent = line.slice(0,charIndex);
+      charIndex++;
+      setTimeout(typeChar, 18);
+    } else {
+      setTimeout(()=>typeBoot(lineIndex+1, cb), 160);
+    }
+  }
+  typeChar();
+}
+
+function showPoeticLines(cb){
+  const lines = ['Some memories fade with time…', 'Some become part of who we are.'];
+  let i=0;
+  const holder = document.createElement('div');
+  holder.className='poetic-line';
+  holder.style.marginTop='22px';
+  holder.style.fontSize='clamp(18px,4vw,26px)';
+  terminalEl.parentElement.insertBefore(holder, document.getElementById('scanner'));
+  function showLine(){
+    if(i>=lines.length){ setTimeout(cb, 500); return; }
+    holder.style.opacity=0;
+    holder.textContent = lines[i];
+    gsap.to(holder,{opacity:1, duration:1});
+    i++;
+    setTimeout(showLine, 2200);
+  }
+  showLine();
+}
+
+setTimeout(()=>{
+  typeBoot(0, ()=>{
+    document.getElementById('scanner').style.display='flex';
+    showPoeticLines(()=>{
+      document.getElementById('p1-result').style.display='block';
+      gsap.from('#p1-result', {opacity:0, y:14, duration:0.9});
+    });
+  });
+}, 500);
+
+document.getElementById('begin-btn').addEventListener('click', ()=>{
+  goToPhase(1);
+});
+
+/* ============ PHASE 2 : MEMORY UNIVERSE ============ */
+const memories = [
+  { img:'assets/words.png', text:'Hi… I still remember our first words.\n\n"N V Raghu college e kadha...!"\n\nSmall words. Big beginning.' },
+  { img:'assets/cute_moments.jpg', text:'Our cute, silly, ridiculous moments.\nThe ones that made us laugh the hardest.' },
+  { img:'assets/beautiful_picture.jpg', text:'Sometimes… the smallest moments\nbecome the biggest memories.' },
+  { img:'assets/first_ride.jpg', text:'Our first ride together.\nSalt air, sunrise, and you.' },
+];
+const seenSet = new Set();
+const modal = document.getElementById('memory-modal');
+const modalImg = document.getElementById('modal-img');
+const modalText = document.getElementById('modal-text');
+
+document.querySelectorAll('.memory-orb').forEach(orb=>{
+  orb.addEventListener('click', ()=>{
+    const i = parseInt(orb.dataset.memory);
+    const m = memories[i];
+    if(m.img){ modalImg.src = m.img; modalImg.style.display='block'; }
+    else { modalImg.style.display='none'; }
+    modalText.textContent = m.text;
+    modal.classList.add('open');
+    orb.classList.add('seen');
+    seenSet.add(i);
+    if(seenSet.size === memories.length){
+      document.getElementById('p2-continue').style.display='inline-block';
+      gsap.from('#p2-continue', {opacity:0, y:10, duration:0.8});
+    }
+  });
+});
+document.getElementById('modal-close').addEventListener('click', ()=> modal.classList.remove('open'));
+modal.addEventListener('click', e=>{ if(e.target===modal) modal.classList.remove('open'); });
+
+document.getElementById('p2-continue').addEventListener('click', ()=> goToPhase(2));
+
+/* ============ PHASE 3 : HEART PUZZLE ============ */
+(function initPuzzle(){
+  const wrap = document.getElementById('puzzle-wrap');
+  const pieces = [...document.querySelectorAll('.heart-piece')];
+  const slotMap = {
+    tl: wrap.querySelector('.slot-tl'),
+    tr: wrap.querySelector('.slot-tr'),
+    bl: wrap.querySelector('.slot-bl'),
+    br: wrap.querySelector('.slot-br'),
+  };
+  let lockedCount = 0;
+
+  pieces.forEach(piece=>{
+    let dragging=false, startX=0, startY=0, origX=0, origY=0;
+
+    piece.addEventListener('pointerdown', e=>{
+      if(piece.classList.contains('locked')) return;
+      dragging=true;
+      piece.setPointerCapture(e.pointerId);
+      const rect = piece.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY;
+      origX = rect.left; origY = rect.top;
+      piece.style.position='fixed';
+      piece.style.left = origX+'px';
+      piece.style.top = origY+'px';
+      piece.style.width = rect.width+'px';
+      piece.style.height = rect.height+'px';
+      piece.style.zIndex = 10;
+    });
+    piece.addEventListener('pointermove', e=>{
+      if(!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      piece.style.left = (origX+dx)+'px';
+      piece.style.top = (origY+dy)+'px';
+    });
+    piece.addEventListener('pointerup', e=>{
+      if(!dragging) return;
+      dragging=false;
+      const target = slotMap[piece.dataset.slot];
+      const tRect = target.getBoundingClientRect();
+      const pRect = piece.getBoundingClientRect();
+      const dist = Math.hypot(tRect.left-pRect.left, tRect.top-pRect.top);
+      if(dist < 110){
+        piece.style.left = tRect.left+'px';
+        piece.style.top = tRect.top+'px';
+        piece.classList.add('locked');
+        lockedCount++;
+        if(lockedCount === pieces.length){
+          setTimeout(heartComplete, 500);
+        }
+      } else {
+        gsap.to(piece, {left: origX, top: origY, duration:0.5, ease:'power2.out'});
+      }
+    });
+  });
+
+ function heartComplete(){
+
+    // Glow completed puzzle pieces
+    gsap.to('.heart-piece', {
+        boxShadow:'0 0 40px rgba(255,0,60,0.9)',
+        duration:0.8,
+        yoyo:true,
+        repeat:2
+    });
+
+
+    // Show glowing heart
+    const finalHeart = document.getElementById('completed-heart');
+
+    if(finalHeart){
+
+        finalHeart.classList.add('show');
+
+    }
+
+
+    setTimeout(()=>{
+
+        particleBurst();
+
+        setTimeout(()=>{
+
+            goToPhase(3, {onEnter: startCinema});
+
+        },2500);
+
+    },900);
+
+}
+
+  function particleBurst(){
+    const burst = document.createElement('div');
+    burst.style.position='fixed'; burst.style.inset='0'; burst.style.zIndex='40'; burst.style.pointerEvents='none';
+    document.body.appendChild(burst);
+    for(let i=0;i<60;i++){
+      const p = document.createElement('div');
+      const angle = Math.random()*Math.PI*2;
+      const dist = 100+Math.random()*300;
+      p.style.position='absolute';
+      p.style.left='50%'; p.style.top='50%';
+      p.style.width='4px'; p.style.height='4px'; p.style.borderRadius='50%';
+      p.style.background = Math.random()>0.5 ? 'var(--gold)' : 'var(--rose)';
+      p.style.boxShadow='0 0 8px 2px rgba(217,176,106,0.7)';
+      burst.appendChild(p);
+      gsap.to(p, {
+        x: Math.cos(angle)*dist, y: Math.sin(angle)*dist,
+        opacity:0, duration:1.1+Math.random()*0.6, ease:'power2.out'
+      });
+    }
+    setTimeout(()=> burst.remove(), 2200);
+  }
+})();
+
+document.getElementById('puzzle-skip').addEventListener('click', ()=>{
+  goToPhase(3, {onEnter: startCinema});
+});
+
+/* ============ PHASE 4 : CINEMA ============ */
+const cinemaVideo = document.getElementById('cinema-video');
+const soundBtn = document.getElementById('sound-toggle');
+const playFallback = document.getElementById('play-fallback');
+function startCinema(){
+  gsap.fromTo('#cinema-caption', {opacity:0}, {opacity:1, duration:1.4, delay:0.3});
+  cinemaVideo.currentTime = 0;
+
+  const playPromise = cinemaVideo.play();
+  if(playPromise !== undefined){
+    playPromise.catch(()=>{
+      playFallback.style.display='flex';
+    });
+  }
+  gsap.to('#cinema-caption', {opacity:0, duration:1, delay:3.2});
+}
+playFallback.addEventListener('click', ()=>{
+  cinemaVideo.play().then(()=> playFallback.style.display='none').catch(()=>{});
+});
+soundBtn.addEventListener('click', ()=>{
+  cinemaVideo.muted = !cinemaVideo.muted;
+  soundBtn.textContent = cinemaVideo.muted ? '🔇' : '🔊';
+  if(cinemaVideo.paused) cinemaVideo.play().catch(()=>{});
+});
+cinemaVideo.addEventListener('ended', ()=>{
+  setTimeout(()=> goToPhase(4, {onEnter: startTemple}), 700);
+});
+
+/* ============ PHASE 5 : TEMPLE ============ */
+function startTemple(){
+
+    gsap.to('#temple-img', {
+        opacity:1,
+        scale:1.04,
+        duration:2.2,
+        ease:'power2.out'
+    });
+  
+const templeLines = [
+    "There was a day...",
+    "I stood here with just one wish.",
+    "I wished for your happiness. ❤️"
+];
+
+const textBox = document.getElementById("temple-text");
+
+let i = 0;
+
+function showLine(){
+
+    if(i >= templeLines.length){
+
+        setTimeout(startPetals,2000);
+        return;
+    }
+
+    const line = document.createElement("div");
+
+    line.className = "temple-line";
+
+    line.textContent = templeLines[i];
+
+    textBox.appendChild(line);
+
+    gsap.to(line,{
+        opacity:1,
+        x:-40,
+        duration:1
+    });
+
+    i++;
+
+    setTimeout(showLine,2500);
+
+}
+
+ function startPetals(){
+
+    console.log("startPetals called");
+
+    const petalInterval = setInterval(()=>{
+        const p = document.createElement('div');
+        p.className='petal';
+        p.textContent='❀';
+        p.style.left=Math.random()*100+'vw';
+        p.style.animationDuration=(5+Math.random()*4)+'s';
+        p.style.fontSize=(10+Math.random()*10)+'px';
+        document.getElementById('phase-5').appendChild(p);
+        setTimeout(()=>p.remove(),9000);
+    },350);
+
+    setTimeout(()=>{
+        console.log("Going to next phase");
+        clearInterval(petalInterval);
+        goToPhase(5, { onEnter: startBeginning });
+    },5200);
+}
+
+// ✅ Start showing the text
+showLine();
+
+} // ✅ End of startTemple()
+
+/* ============ PHASE 6 : BEGINNING ============ */
+function startBeginning() {
+
+  // Show polaroid
+  gsap.to('#polaroid', {
+    opacity: 1,
+    scale: 1,
+    rotate: -2,
+    duration: 1.6,
+    ease: 'back.out(1.4)'
+  });
+
+  const lines = [
+    '<span class="highlight-date">16-Jan-26</span><br><span class="sub-line">Our first outing.</span>',
+
+    'Every story has a beginning.',
+
+    'Yet my heart remembers another date...',
+
+    '<span class="highlight-date">25-Dec-25</span><br><span class="sub-line">Our very first photo together. 📸</span>',
+
+    'Who knew one ordinary click...',
+
+    '...would be the start of a thousand memories with you. ❤️✨',
+
+    // Revisit the important dates
+    '<span class="highlight-date">16-Jan-26</span><br><span class="sub-line">Our first outing.</span>',
+
+    '<span class="highlight-date">25-Dec-25</span><br><span class="sub-line">Our very first photo together. 📸</span>',
+
+    // Final Pickup Line
+    `<span class="pickup-line">
+      If one picture could begin a beautiful story...<br><br>
+      imagine how beautiful the rest of our album will be. ❤️✨
+    </span>`
+  ];
+
+  const el = document.getElementById('beginning-text');
+
+  let i = 0;
+
+  function showLine() {
+
+    if (i >= lines.length) {
+      setTimeout(() => {
+        goToPhase(6, { onEnter: null });
+      }, 3400);
+      return;
+    }
+
+    // Replace content without fading
+    el.innerHTML = lines[i];
+
+    // Smooth upward animation
+    gsap.fromTo(
+      el,
+      {
+        y: 25,
+        opacity: 0
+      },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power2.out"
+      }
+    );
+
+    i++;
+
+    setTimeout(showLine, 3400);
+  }
+
+  setTimeout(showLine, 1400);
+}
+
+/* ============ PHASE 7 : LETTER ============ */
+const envelope = document.getElementById('envelope');
+const letterBox = document.getElementById('letter-text');
+const letterContent = `Hi Kuchiii... ❤️ 
+
+If you are reading this, it means you have completed this little journey I made for you.
+
+I don't know whether this is the best thing I could do, but I know I made it with a lot of happiness, care, and a small smile while remembering all these moments.
+
+Every photo, every animation, every small detail, and every word here has a little story behind it. While creating this, I felt like I was living those beautiful memories again.
+
+Some memories are saved in our phones... but the best ones are saved in our hearts. ❤️
+
+Niku cheppali anukunna maatalu chaala unnayi...
+
+Kaani ee okka page lo anni feelings ni rayadam kastam.
+
+Prathi page design chesthunappudu...
+
+"Oka smile aina vastundha?" ane thought ae undedhi.
+
+Nuvvu vere vallaki edaina cheppinappudu konchem possessive avutha...
+
+Adhi kopam kaadhu.
+
+Nee life lo naaku oka special place undali ane chinna selfishness.
+
+Ee website create chesthunappudu code rayaledhu...
+
+Kaani...
+
+Vaati venaka unna reason maatram nuvve.
+
+Naaku oka korika maatrame...
+
+Years tarvatha kuda...
+
+Ee website open chesi...
+
+"Picchi fellow... entha effort pettado..." ani oka smile navvali.
+
+Adhe naaku chaalu.
+
+Thank you for being a beautiful part of my memories and for giving me so many moments to smile about.
+
+I hope this little journey made you happy, just like those moments made me happy.
+
+Always keep smiling... ❤️
+
+With lots of love...
+- Pichodu ❤️
+`;
+
+envelope.addEventListener('click', ()=>{
+  if(envelope.classList.contains('open')) return;
+  const phase7Music = document.getElementById("phase7Music");
+
+console.log("Audio Element:", phase7Music);
+
+if (phase7Music) {
+
+    console.log("Ready State:", phase7Music.readyState);
+    console.log("Source:", phase7Music.currentSrc);
+
+    phase7Music.currentTime = 45;
+    phase7Music.volume = 0.5;
+
+    phase7Music.play()
+        .then(() => {
+            console.log("✅ Music started");
+        })
+        .catch(err => {
+            console.error("❌ Play Error:", err);
+        });
+
+}
+
+
+  envelope.classList.add('open');
+  setTimeout(()=>{
+    document.getElementById('envelope-stage').style.display='none';
+    letterBox.style.display='block';
+
+letterBox.animate(
+[
+ {opacity:0, transform:"translateY(40px) rotate(-3deg)"},
+ {opacity:1, transform:"translateY(0) rotate(-1deg)"}
+],
+{
+ duration:1200,
+ easing:"cubic-bezier(.2,.8,.2,1)"
+}
+);
+    letterBox.textContent='';
+    let i=0;
+    function typeLetter(){
+      if(i<=letterContent.length){
+        letterBox.textContent = letterContent.slice(0,i);
+
+letterBox.scrollTop = letterBox.scrollHeight;
+       i++;
+setTimeout(typeLetter,35);
+      } else {
+
+    setTimeout(()=>{
+
+        const heart=document.getElementById("final-heart",'Thank you for being one of my most cherished memories.');
+
+        heart.style.display="block";
+
+        heart.animate(
+        [
+            {
+                opacity:0,
+                transform:"translateY(50px) scale(.5)"
+            },
+            {
+                opacity:1,
+                transform:"translateY(0) scale(1)"
+            }
+        ],
+        {
+            duration:1200,
+            easing:"ease-out"
+        });
+
+    },1200);
+
+}
+    }
+    typeLetter();
+  }, 900);
+});
+
+function showFinal(){
+  letterBox.style.display='none';
+  const finalStage = document.getElementById('final-stage');
+  finalStage.style.display='block';
+  gsap.from(finalStage, {opacity:0, duration:1});
+
+  const endLine = document.createElement('div');
+  endLine.className='end-line';
+  endLine.textContent='— End of Journey —';
+  document.getElementById('phase-7').appendChild(endLine);
+
+  document.getElementById('final-heart').addEventListener('click', function handler(){
+    sparkle();
+    gsap.to('#final-words', {opacity:1, duration:1.2});
+    document.getElementById('final-words').textContent = 'Thank you for being one of my most cherished memories.';
+    this.removeEventListener('click', handler);
+  });
+}
+
+function sparkle(){
+  const heart = document.getElementById('final-heart');
+  const rect = heart.getBoundingClientRect();
+  for(let i=0;i<24;i++){
+    const s = document.createElement('div');
+    s.style.position='fixed';
+    s.style.left = (rect.left+rect.width/2)+'px';
+    s.style.top = (rect.top+rect.height/2)+'px';
+    s.style.width='3px'; s.style.height='3px'; s.style.borderRadius='50%';
+    s.style.background='var(--gold-soft)'; s.style.zIndex='45'; s.style.pointerEvents='none';
+    document.body.appendChild(s);
+    const angle = Math.random()*Math.PI*2;
+    const dist = 40+Math.random()*90;
+    gsap.to(s,{ x:Math.cos(angle)*dist, y:Math.sin(angle)*dist, opacity:0, duration:1.2, ease:'power2.out'});
+    setTimeout(()=>s.remove(),1300);
+  }
+}
+
+
+</script>
+
+</body>
+</html>
